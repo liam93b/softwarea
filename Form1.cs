@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,7 +12,6 @@ namespace WindowsFormsApplication1
 {
     public partial class Form1 : Form
     {
-
         private const int MAX = 256;      // max iterations
         private const double SX = -2.025; // start value real
         private const double SY = -1.125; // start value imaginary
@@ -25,84 +23,129 @@ namespace WindowsFormsApplication1
         private static float xy;
         private Image picture;
         private Graphics g1;
-
-
+        private Cursor c1, c2;
         private Bitmap myBitmap;
 
-        public static class HSB
-        {//djm added, it makes it simpler to have this code in here than in the C#
-            public static double rChan = 0, gChan = 0, bChan = 0;
+        public Form1()
+        {
+            InitializeComponent();
+            init();
+            start();
 
-            public static void fromHSB(float h, float s, float b)
+        }
+
+        public struct HSBColor
+        {
+            float h;
+            float s;
+            float b;
+            int a;
+            public HSBColor(float h, float s, float b)
             {
-                float red = b;
-                float green = b;
-                float blue = b;
-                if (s != 0)
+                this.a = 0xff;
+                this.h = Math.Min(Math.Max(h, 0), 255);
+                this.s = Math.Min(Math.Max(s, 0), 255);
+                this.b = Math.Min(Math.Max(b, 0), 255);
+            }
+            public HSBColor(int a, float h, float s, float b)
+            {
+                this.a = a;
+                this.h = Math.Min(Math.Max(h, 0), 255);
+                this.s = Math.Min(Math.Max(s, 0), 255);
+                this.b = Math.Min(Math.Max(b, 0), 255);
+            }
+            public float H
+            {
+                get { return h; }
+            }
+            public float S
+            {
+                get { return s; }
+            }
+            public float B
+            {
+                get { return b; }
+            }
+            public int A
+            {
+                get { return a; }
+            }
+            public Color Color
+            {
+                get
                 {
-                    float max = b;
-                    float dif = b * s / 255f;
-                    float min = b - dif;
-
-                    float h2 = h * 360f / 255f;
-
-                    if (h2 < 60f)
+                    return FromHSB(this);
+                }
+            }
+            public static Color FromHSB(HSBColor hsbColor)
+            {
+                float r = hsbColor.b;
+                float g = hsbColor.b;
+                float b = hsbColor.b;
+                if (hsbColor.s != 0)
+                {
+                    float max = hsbColor.b;
+                    float dif = hsbColor.b * hsbColor.s / 255f;
+                    float min = hsbColor.b - dif;
+                    float h = hsbColor.h * 360f / 255f;
+                    if (h < 60f)
                     {
-                        red = max;
-                        green = h2 * dif / 60f + min;
-                        blue = min;
+                        r = max;
+                        g = h * dif / 60f + min;
+                        b = min;
                     }
-                    else if (h2 < 120f)
+                    else if (h < 120f)
                     {
-                        red = -(h2 - 120f) * dif / 60f + min;
-                        green = max;
-                        blue = min;
+                        r = -(h - 120f) * dif / 60f + min;
+                        g = max;
+                        b = min;
                     }
-                    else if (h2 < 180f)
+                    else if (h < 180f)
                     {
-                        red = min;
-                        green = max;
-                        blue = (h2 - 120f) * dif / 60f + min;
+                        r = min;
+                        g = max;
+                        b = (h - 120f) * dif / 60f + min;
                     }
-                    else if (h2 < 240f)
+                    else if (h < 240f)
                     {
-                        red = min;
-                        green = -(h2 - 240f) * dif / 60f + min;
-                        blue = max;
+                        r = min;
+                        g = -(h - 240f) * dif / 60f + min;
+                        b = max;
                     }
-                    else if (h2 < 300f)
+                    else if (h < 300f)
                     {
-                        red = (h2 - 240f) * dif / 60f + min;
-                        green = min;
-                        blue = max;
+                        r = (h - 240f) * dif / 60f + min;
+                        g = min;
+                        b = max;
                     }
-                    else if (h2 <= 360f)
+                    else if (h <= 360f)
                     {
-                        red = max;
-                        green = min;
-                        blue = -(h2 - 360f) * dif / 60 + min;
+                        r = max;
+                        g = min;
+                        b = -(h - 360f) * dif / 60 + min;
                     }
                     else
                     {
-                        red = 0;
-                        green = 0;
-                        blue = 0;
+                        r = 0;
+                        g = 0;
+                        b = 0;
                     }
                 }
-
-                rChan = Math.Round(Math.Min(Math.Max(red, 0f), 255));
-                gChan = Math.Round(Math.Min(Math.Max(green, 0), 255));
-                bChan = Math.Round(Math.Min(Math.Max(blue, 0), 255));
-
+                return Color.FromArgb
+                    (
+                        hsbColor.a,
+                        (int)Math.Round(Math.Min(Math.Max(r, 0), 255)),
+                        (int)Math.Round(Math.Min(Math.Max(g, 0), 255)),
+                        (int)Math.Round(Math.Min(Math.Max(b, 0), 255))
+                        );
             }
-
         }
 
 
         public void init() // all instances will be prepared
         {
             //HSBcol = new HSB();
-            //finished = false;
+            finished = false;
             //addMouseListener(this);
             //addMouseMotionListener(this);
             //c1 = new Cursor(Cursor.WAIT_CURSOR);
@@ -136,13 +179,20 @@ namespace WindowsFormsApplication1
                 xstart = xende - (yende - ystart) * (double)xy;
         }
 
-        private void Fractal_Paint(object sender, PaintEventArgs e)
+        private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            update(g1);
+
+
+            Graphics g1 = e.Graphics;
+            g1.DrawImage(myBitmap, 0, 0, x1, y1);
+            g1.Dispose();
+
         }
 
         public void update(Graphics g1)
         {
+
+
             Pen blackPen = new Pen(Color.Black, 3);
 
             g1.DrawImage(myBitmap, 0, 0);
@@ -164,7 +214,6 @@ namespace WindowsFormsApplication1
 
         private void mandelbrot() // calculate all points
         {
-            Pen whitePen = new Pen(Color.White, 3);
 
             Pen tempPen = null;
             Color col;
@@ -173,44 +222,35 @@ namespace WindowsFormsApplication1
 
             action = false;
             Cursor.Current = Cursors.WaitCursor; //setCursor(c1);
-            //showStatus("Mandelbrot-Set will be produced - please wait...");
+
             for (x = 0; x < x1; x += 2)
                 for (y = 0; y < y1; y++)
                 {
                     h = pointcolour(xstart + xzoom * (double)x, ystart + yzoom * (double)y); // color value
                     if (h != alt)
                     {
-                        b = 1.0f - h * h; // brightnes
+                        b = 1.0f - h * h; // brightness
 
-                        HSB.fromHSB(h, 0.8f, b);
+                        /*HSB.fromHSB(h * 255, 0.8f * 255, b * 255);
+                        int red = Convert.ToInt32(HSB.rChan); //.getRed();
+                        int green = Convert.ToInt32(HSB.gChan); //.getGreen();
+                        int blue = Convert.ToInt32(HSB.bChan); //.getBlue();
+                        
+                        col = Color.FromArgb(0, red, green, blue);*/
 
-                        col = Color.FromArgb(0, Convert.ToInt32(HSB.rChan), Convert.ToInt32(HSB.gChan), Convert.ToInt32(HSB.bChan));
+                        col = HSBColor.FromHSB(new HSBColor(h * 255, 0.8f * 255, b * 255));
 
                         tempPen = new Pen(col, 3);
-
-
-                        ///djm added
-                        ///HSBcol.fromHSB(h,0.8f,b); //convert hsb to rgb then make a Java Color
-                        ///Color col = new Color(0,HSBcol.rChan,HSBcol.gChan,HSBcol.bChan);
-                        ///g1.setColor(col);
-                        //djm end
-                        //djm added to convert to RGB from HSB
-
-                        //g1.setColor(HSBtoRGB(h, 0.8f, b));
-                        //djm test
-
-                        //Color col = HSBtoRGB(h, 0.8f, b);
-                        //int red = col.R; //.getRed();
-                        //int green = col.G; //.getGreen();
-                        //int blue = col.B; //.getBlue();
                         //djm 
                         alt = h;
                     }
                     g1.DrawLine(tempPen, x, y, x + 1, y);
                 }
-            //showStatus("Mandelbrot-Set ready - please select zoom area with pressed mouse.");
+
             Cursor.Current = Cursors.Cross; //setCursor(c2);
             action = true;
+
+
         }
 
         private float pointcolour(double xwert, double ywert) // color value from 0.0 to 1.0 by iterations
@@ -228,7 +268,7 @@ namespace WindowsFormsApplication1
             return (float)j / (float)MAX;
         }
 
-        private void Fractal_MouseDown(object sender, MouseEventArgs e)
+        private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
 
             if (action)
@@ -238,7 +278,7 @@ namespace WindowsFormsApplication1
             }
         }
 
-        private void Fractal_MouseUp(object sender, MouseEventArgs e)
+        private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
             int z, w;
 
@@ -281,7 +321,7 @@ namespace WindowsFormsApplication1
 
 
 
-        private void Fractal_MouseMove(object sender, MouseEventArgs e)
+        private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
             //e.consume();
             if (action)
@@ -289,14 +329,8 @@ namespace WindowsFormsApplication1
                 xe = e.X;
                 ye = e.Y;
                 rectangle = true;
-                Invalidate();
+
             }
-        }
-
-        public Form1()
-        {
-
-            InitializeComponent();
         }
     }
 }
