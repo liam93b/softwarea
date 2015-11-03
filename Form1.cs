@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 
 namespace WindowsFormsApplication1
 {
@@ -190,7 +192,7 @@ namespace WindowsFormsApplication1
             if (rectangle == true)
             {
                 update(g1);
-            } 
+            }
 
         }
 
@@ -339,6 +341,113 @@ namespace WindowsFormsApplication1
                     this.Refresh();
                 }
 
+            }
+        }
+
+        private void menuToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void saveImageAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (myBitmap != null) { SaveFileDialog dia = new SaveFileDialog(); dia.Filter = "jpg file (*.jpg)|*.jpg"; if (dia.ShowDialog() == DialogResult.OK) { try { this.myBitmap.Save(dia.FileName); MessageBox.Show("Image Saved Liam!"); } catch { } } }
+        }
+
+        private void saveStateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            BitmapState bit = new BitmapState();
+            bit.setValues(xstart, xende, ystart, yende, xzoom, yzoom);
+
+            Console.WriteLine("b4 xs : " + bit.getXS() + " xe : " + bit.getXE());
+
+            XmlSerializer xs = new XmlSerializer(typeof(BitmapState));
+            TextWriter tw = new StreamWriter(@"c:\temp\bmpstate.xml");
+            xs.Serialize(tw, bit);
+            tw.Close();
+
+        }
+
+        private void openStateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            BitmapState bit;
+            XmlSerializer xs = new XmlSerializer(typeof(BitmapState));
+            using (var sr = new StreamReader(@"c:\temp\bmpstate.xml"))
+            {
+                bit = (BitmapState)xs.Deserialize(sr);
+            }
+
+            if (bit != null)
+            {
+                Console.WriteLine("aff xs : " + bit.getXS() + " xe : " + bit.getXE());
+                xstart = bit.getXS();
+                ystart = bit.getYS();
+                xende = bit.getXE();
+                yende = bit.getYE();
+                yzoom = bit.getYZ();
+                xzoom = bit.getXZ();
+                mandelbrot();
+                this.Refresh();
+            }
+        }
+
+
+        public class BitmapState
+        {
+            //REPLACE END WITH ZOOM
+            public double xs;
+            public double xe;
+            public double ys;
+            public double ye;
+            public double xz;
+            public double yz;
+            Bitmap bitmap;
+            // HAD TO MAKE THEM PUBLIC SO XML SERIALIZER CAN WRITE
+
+            public void setValues(double xs, double xe, double ys, double ye, double xz, double yz)
+            {
+                this.xs = xs;
+                this.ys = ys;
+                this.xe = xe;
+                this.ye = ye;
+                this.yz = yz;
+                this.xz = xz;
+            }
+
+            public double getXS()
+            {
+                return xs;
+            }
+            public double getYS()
+            {
+                return ys;
+            }
+            public double getXE()
+            {
+                return xe;
+            }
+            public double getYE()
+            {
+                return ye;
+            }
+            public double getXZ()
+            {
+                return xz;
+            }
+            public double getYZ()
+            {
+                return yz;
+            }
+
+
+            // Probably not
+            public void setBitmap(Bitmap bm)
+            {
+                bitmap = bm;
+            }
+            public Bitmap getBitmap()
+            {
+                return bitmap;
             }
         }
     }
