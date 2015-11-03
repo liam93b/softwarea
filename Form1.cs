@@ -185,7 +185,12 @@ namespace WindowsFormsApplication1
 
             Graphics g1 = e.Graphics;
             g1.DrawImage(myBitmap, 0, 0, x1, y1);
-            g1.Dispose();
+            //g1.Dispose();
+
+            if (rectangle == true)
+            {
+                update(g1);
+            } 
 
         }
 
@@ -193,7 +198,7 @@ namespace WindowsFormsApplication1
         {
 
 
-            Pen blackPen = new Pen(Color.Black, 3);
+            Pen blackPen = new Pen(Color.White);
 
             g1.DrawImage(myBitmap, 0, 0);
             if (rectangle)
@@ -240,7 +245,7 @@ namespace WindowsFormsApplication1
 
                         col = HSBColor.FromHSB(new HSBColor(h * 255, 0.8f * 255, b * 255));
 
-                        tempPen = new Pen(col, 3);
+                        tempPen = new Pen(col);
                         //djm 
                         alt = h;
                     }
@@ -275,6 +280,7 @@ namespace WindowsFormsApplication1
             {
                 xs = e.X;
                 ys = e.Y;
+                rectangle = true;
             }
         }
 
@@ -328,7 +334,10 @@ namespace WindowsFormsApplication1
             {
                 xe = e.X;
                 ye = e.Y;
-                rectangle = true;
+                if (rectangle == true)
+                {
+                    this.Refresh();
+                }
 
             }
         }
